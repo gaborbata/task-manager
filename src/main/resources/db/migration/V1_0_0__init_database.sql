@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS `user`
+(
+    `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `username`   VARCHAR(255) NOT NULL UNIQUE,
+    `first_name` VARCHAR(255),
+    `last_name`  VARCHAR(255)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = UTF8;
+
+CREATE TABLE IF NOT EXISTS `task`
+(
+    `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `user_id`     INT UNSIGNED NOT NULL,
+    `name`        VARCHAR(255) NOT NULL,
+    `description` TEXT,
+    `date_time`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `status`      VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    CONSTRAINT `fk_user` FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
+    CONSTRAINT `uq_name` UNIQUE (user_id, name)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = UTF8;
