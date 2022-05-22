@@ -52,9 +52,9 @@ public class TaskService {
     }
 
     public Mono<Void> updateTask(Long userId, Long taskId, TaskRequestDto task) {
-        return userRepository.findById(userId)
-                .switchIfEmpty(Mono.error(new EntityNotFoundException("user entity does not exists")))
-                .flatMap(existingUser -> {
+        return taskRepository.findByIdAndUserId(userId, taskId)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("entity does not exists")))
+                .flatMap(existingTask -> {
                     var entity = taskMapper.toEntity(task);
                     var outboundRow = r2dbcEntityTemplate.getDataAccessStrategy().getOutboundRow(entity);
                     Map<SqlIdentifier, Object> assignments = outboundRow.entrySet().stream()
@@ -69,9 +69,9 @@ public class TaskService {
     }
 
     public Mono<Void> deleteTask(Long userId, Long taskId) {
-        return userRepository.findById(userId)
+        return taskRepository.findByIdAndUserId(userId, taskId)
                 .switchIfEmpty(Mono.error(new EntityNotFoundException("user entity does not exists")))
-                .flatMap(existingUser -> taskRepository.deleteById(taskId))
+                .flatMap(existingTask -> taskRepository.deleteById(taskId))
                 .doOnError(error -> LOGGER.error("Could not delete task with userId=" + userId + " and taskId=" + taskId, error));
     }
 
