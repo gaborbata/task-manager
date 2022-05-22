@@ -36,7 +36,7 @@ public class TaskController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<TaskResponseDto> createTask(@Valid @PathVariable Long userId, @Valid @RequestBody TaskRequestDto task) {
+    public Mono<TaskResponseDto> createTask(@PathVariable Long userId, @Valid @RequestBody TaskRequestDto task) {
         return taskService.createTask(userId, task);
     }
 
