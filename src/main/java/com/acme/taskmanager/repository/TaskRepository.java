@@ -15,4 +15,6 @@ public interface TaskRepository extends ReactiveCrudRepository<TaskEntity, Long>
     Flux<TaskEntity> findAllByUserId(Long userId);
 
     Mono<TaskEntity> findByIdAndUserId(Long taskId, Long userId);
+
+    Mono<Boolean> existsByIdAndUserId(Long taskId, Long userId);
 }

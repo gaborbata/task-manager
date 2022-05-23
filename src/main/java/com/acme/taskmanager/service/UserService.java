@@ -6,21 +6,14 @@ import com.acme.taskmanager.dto.UserResponseDto;
 import com.acme.taskmanager.entity.UserEntity;
 import com.acme.taskmanager.exception.EntityNotFoundException;
 import com.acme.taskmanager.mapper.UserMapper;
+import com.acme.taskmanager.repository.EntityUpdater;
 import com.acme.taskmanager.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
-import org.springframework.data.relational.core.query.Criteria;
-import org.springframework.data.relational.core.query.Query;
-import org.springframework.data.relational.core.query.Update;
-import org.springframework.data.relational.core.sql.SqlIdentifier;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Service for managing users.
@@ -31,13 +24,13 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final R2dbcEntityTemplate r2dbcEntityTemplate;
+    private final EntityUpdater<UserEntity, Long> entityUpdater;
 
     @Autowired
-    public UserService(UserRepository userRepository, UserMapper userMapper, R2dbcEntityTemplate r2dbcEntityTemplate) {
+    public UserService(UserRepository userRepository, UserMapper userMapper, EntityUpdater<UserEntity, Long> entityUpdater) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
-        this.r2dbcEntityTemplate = r2dbcEntityTemplate;
+        this.entityUpdater = entityUpdater;
     }
 
     public Mono<UserResponseDto> createUser(UserRequestDto user) {
@@ -47,18 +40,10 @@ public class UserService {
     }
 
     public Mono<Void> updateUser(Long userId, UserRequestDto user) {
-        return userRepository.findById(userId)
+        return userRepository.existsById(userId)
+                .flatMap(exists -> exists ? Mono.just(exists) : Mono.empty())
                 .switchIfEmpty(Mono.error(new EntityNotFoundException("user entity does not exists")))
-                .flatMap(existingUser -> {
-                    var entity = userMapper.toEntity(user);
-                    var outboundRow = r2dbcEntityTemplate.getDataAccessStrategy().getOutboundRow(entity);
-                    Map<SqlIdentifier, Object> assignments = outboundRow.entrySet().stream()
-                            .filter(entry -> entry.getValue().hasValue())
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                    return r2dbcEntityTemplate.update(UserEntity.class)
-                            .matching(Query.query(Criteria.where("id").is(userId)))
-                            .apply(Update.from(assignments));
-                })
+                .flatMap(exists -> entityUpdater.updateNonNull(userId, userMapper.toEntity(user)))
                 .doOnError(error -> LOGGER.error("Could not update user with userId=" + userId, error))
                 .flatMap(resultCount -> resultCount > 0 ? Mono.empty() : Mono.error(new EntityNotFoundException("Could not update entity")));
     }
