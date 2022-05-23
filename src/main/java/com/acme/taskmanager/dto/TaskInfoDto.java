@@ -15,10 +15,16 @@ import java.time.LocalDateTime;
 public class TaskInfoDto {
 
     private final Long id;
+
     private final String name;
+
     private final String description;
+
+    @JsonProperty("date_time")
     private final LocalDateTime dateTime;
+
     private final TaskStatus status;
+
     private final UserInfoDto user;
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)

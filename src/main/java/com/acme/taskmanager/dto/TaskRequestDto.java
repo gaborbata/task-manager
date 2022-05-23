@@ -17,8 +17,13 @@ public class TaskRequestDto {
 
     @NotNull
     private final String name;
+
     private final String description;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonProperty("date_time")
     private final LocalDateTime dateTime;
+
     private final TaskStatus status;
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)

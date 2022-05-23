@@ -14,7 +14,11 @@ public class UserRequestDto {
 
     @NotNull
     private final String username;
+
+    @JsonProperty("first_name")
     private final String firstName;
+
+    @JsonProperty("last_name")
     private final String lastName;
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
