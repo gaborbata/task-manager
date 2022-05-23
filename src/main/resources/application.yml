@@ -2,12 +2,12 @@
 spring:
   r2dbc:
     url: r2dbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_DATABASE:taskmanager}
-    username: root
+    username: ${DB_USER:test}
     password: ${DB_PASSWORD:example}
     driver-class-name: org.mariadb.jdbc.Driver
   flyway:
     url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_DATABASE:taskmanager}
-    user: root
+    user: ${DB_USER:test}
     password: ${DB_PASSWORD:example}
 
 logging:

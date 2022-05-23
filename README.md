@@ -29,7 +29,9 @@ The application can be configured with the following environment variables (whic
 ```
 APP_PORT=8080
 DB_DATABASE=taskmanager
+DB_USER=test
 DB_PASSWORD=example
+DB_ROOT_PASSWORD=secret
 DB_HOST=mariadb
 DB_PORT=3306
 ```
