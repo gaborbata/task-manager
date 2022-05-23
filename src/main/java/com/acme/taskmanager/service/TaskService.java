@@ -57,7 +57,7 @@ public class TaskService {
     public Mono<Void> deleteTask(Long userId, Long taskId) {
         return taskRepository.existsByIdAndUserId(userId, taskId)
                 .flatMap(exists -> exists ? Mono.just(exists) : Mono.empty())
-                .switchIfEmpty(Mono.error(new EntityNotFoundException("user entity does not exists")))
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("entity does not exists")))
                 .flatMap(exists -> taskRepository.deleteById(taskId))
                 .doOnError(error -> LOGGER.error("Could not delete task with userId=" + userId + " and taskId=" + taskId, error));
     }
