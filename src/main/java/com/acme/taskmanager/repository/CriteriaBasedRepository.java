@@ -3,7 +3,6 @@ package com.acme.taskmanager.repository;
 import com.acme.taskmanager.exception.EntityNotFoundException;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.relational.core.sql.SqlIdentifier;
-import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -30,7 +29,6 @@ public abstract class CriteriaBasedRepository<T, ID> {
     protected CriteriaBasedRepository(R2dbcEntityTemplate r2dbcEntityTemplate) {
         this.r2dbcEntityTemplate = r2dbcEntityTemplate;
         var identifiers = r2dbcEntityTemplate.getDataAccessStrategy().getIdentifierColumns(getEntityClass());
-        Assert.state(identifiers.size() == 1, "there must be exactly one identifier");
         this.identifier = identifiers.stream()
                 .findFirst()
                 .map(SqlIdentifier::getReference)
