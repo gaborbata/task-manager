@@ -4,7 +4,6 @@ import com.acme.taskmanager.dto.ErrorResponseDto;
 import com.acme.taskmanager.dto.TaskInfoDto;
 import com.acme.taskmanager.dto.TaskRequestDto;
 import com.acme.taskmanager.dto.TaskResponseDto;
-import com.acme.taskmanager.dto.UserRequestDto;
 import com.acme.taskmanager.entity.TaskEntity;
 import com.acme.taskmanager.entity.UserEntity;
 import com.acme.taskmanager.exception.ResponseEntityExceptionMapper;
@@ -55,7 +54,6 @@ class TaskControllerTest {
     private static final String TASK_NAME = "donut";
     private static final String INVALID_TASK_NAME = null;
     private static final String DESCRIPTION = "buy donuts";
-    private static final UserRequestDto VALID_USER_REQUEST = new UserRequestDto(USERNAME, FIRST_NAME, LAST_NAME);
     private static final TaskRequestDto VALID_TASK_REQUEST = new TaskRequestDto(TASK_NAME, DESCRIPTION, DATE_TIME, STATUS);
     private static final TaskRequestDto INVALID_TASK_REQUEST = new TaskRequestDto(INVALID_TASK_NAME, DESCRIPTION, DATE_TIME, STATUS);
     private static final UserEntity USER_ENTITY = new UserEntity(USER_ID, USERNAME, FIRST_NAME, LAST_NAME);
@@ -165,7 +163,7 @@ class TaskControllerTest {
 
         webTestClient.put()
                 .uri("/api/user/{userId}", USER_ID)
-                .bodyValue(VALID_USER_REQUEST)
+                .bodyValue(VALID_TASK_REQUEST)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody(ErrorResponseDto.class);
