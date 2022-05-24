@@ -28,8 +28,7 @@ public abstract class CriteriaBasedRepository<T, ID> {
 
     protected CriteriaBasedRepository(R2dbcEntityTemplate r2dbcEntityTemplate) {
         this.r2dbcEntityTemplate = r2dbcEntityTemplate;
-        var identifiers = r2dbcEntityTemplate.getDataAccessStrategy().getIdentifierColumns(getEntityClass());
-        this.identifier = identifiers.stream()
+        this.identifier = r2dbcEntityTemplate.getDataAccessStrategy().getIdentifierColumns(getEntityClass()).stream()
                 .findFirst()
                 .map(SqlIdentifier::getReference)
                 .orElseThrow(() -> new IllegalArgumentException("identifier must be defined"));
