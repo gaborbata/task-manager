@@ -19,6 +19,9 @@ import static org.springframework.data.relational.core.query.Update.update;
  */
 @Repository
 public class TaskRepository extends CriteriaBasedRepository<TaskEntity, Long> {
+    private static final String USER_ID = "user_id";
+    private static final String STATUS = "status";
+    private static final String DATE_TIME = "date_time";
 
     @Autowired
     public TaskRepository(R2dbcEntityTemplate r2dbcEntityTemplate) {
@@ -31,23 +34,23 @@ public class TaskRepository extends CriteriaBasedRepository<TaskEntity, Long> {
     }
 
     public Flux<TaskEntity> findAllByUserId(Long userId) {
-        return r2dbcEntityTemplate.select(query(where("user_id").is(userId)), getEntityClass());
+        return r2dbcEntityTemplate.select(query(where(USER_ID).is(userId)), getEntityClass());
     }
 
     public Mono<TaskEntity> findByIdAndUserId(Long taskId, Long userId) {
         return r2dbcEntityTemplate.selectOne(query(where(identifier).is(taskId)
-                .and("user_id").is(userId)), getEntityClass());
+                .and(USER_ID).is(userId)), getEntityClass());
     }
 
     public Mono<Boolean> existsByIdAndUserId(Long taskId, Long userId) {
         return r2dbcEntityTemplate.exists(query(where(identifier).is(taskId)
-                .and("user_id").is(userId)), getEntityClass());
+                .and(USER_ID).is(userId)), getEntityClass());
     }
 
     public Mono<Integer> updatePendingTasksBeforeDateTime(LocalDateTime expirationDateTime, TaskStatus status) {
         return r2dbcEntityTemplate.update(getEntityClass())
-                .matching(query(where("status").is(TaskStatus.PENDING)
-                        .and("date_time").lessThanOrEquals(expirationDateTime)))
-                .apply(update("status", status));
+                .matching(query(where(STATUS).is(TaskStatus.PENDING)
+                        .and(DATE_TIME).lessThanOrEquals(expirationDateTime)))
+                .apply(update(STATUS, status));
     }
 }

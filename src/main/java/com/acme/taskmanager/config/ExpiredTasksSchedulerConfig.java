@@ -11,10 +11,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 /**
- * Config for a scheduled job to check all tasks in the Database - those that have a status of "PENDING"
+ * Config for a scheduled job based on a delay and expiration duration
+ * to check all tasks in the database - those that have a status of "PENDING"
  * and who date_time has passed.
  */
 @Configuration
@@ -24,19 +26,19 @@ public class ExpiredTasksSchedulerConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExpiredTasksSchedulerConfig.class);
 
     private final TaskRepository taskRepository;
-    private final Integer expirationInDays;
+    private final Duration expiration;
 
     @Autowired
     public ExpiredTasksSchedulerConfig(TaskRepository taskRepository,
-                                       @Value("${expired-task-scheduler.expiration-in-days}") Integer expirationInDays) {
+                                       @Value("${expired-task-scheduler.expiration}") Duration expiration) {
         this.taskRepository = taskRepository;
-        this.expirationInDays = expirationInDays;
-        LOGGER.info("Expired task scheduler initialized with expirationInDays={}", expirationInDays);
+        this.expiration = expiration;
+        LOGGER.info("Expired task scheduler initialized with expiration={}", expiration);
     }
 
     @Scheduled(fixedDelayString = "${expired-task-scheduler.delay-in-ms}", initialDelayString = "${expired-task-scheduler.delay-in-ms}")
     public void scheduleExpiredTaskUpdates() {
-        var expirationDateTime = LocalDateTime.now().minusDays(expirationInDays);
+        var expirationDateTime = LocalDateTime.now().minusNanos(expiration.toNanos());
         taskRepository.updatePendingTasksBeforeDateTime(expirationDateTime, TaskStatus.DONE)
                 .subscribe(
                         count -> LOGGER.info("Updated {} expired task(s)", count),
