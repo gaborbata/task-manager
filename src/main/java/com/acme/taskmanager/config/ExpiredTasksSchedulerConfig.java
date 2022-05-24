@@ -36,7 +36,7 @@ public class ExpiredTasksSchedulerConfig {
 
     @Scheduled(fixedDelayString = "${expired-task-scheduler.delay-in-ms}", initialDelayString = "${expired-task-scheduler.delay-in-ms}")
     public void scheduleExpiredTaskUpdates() {
-        LocalDateTime expirationDateTime = LocalDateTime.now().minusDays(expirationInDays);
+        var expirationDateTime = LocalDateTime.now().minusDays(expirationInDays);
         taskRepository.updatePendingTasksBeforeDateTime(expirationDateTime, TaskStatus.DONE)
                 .subscribe(
                         count -> LOGGER.info("Updated {} expired task(s)", count),
