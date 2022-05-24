@@ -3,10 +3,8 @@ package com.acme.taskmanager.service;
 import com.acme.taskmanager.dto.UserRequestDto;
 import com.acme.taskmanager.dto.UserInfoDto;
 import com.acme.taskmanager.dto.UserResponseDto;
-import com.acme.taskmanager.entity.UserEntity;
 import com.acme.taskmanager.exception.EntityNotFoundException;
 import com.acme.taskmanager.mapper.UserMapper;
-import com.acme.taskmanager.repository.EntityUpdater;
 import com.acme.taskmanager.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +22,11 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final EntityUpdater<UserEntity, Long> entityUpdater;
 
     @Autowired
-    public UserService(UserRepository userRepository, UserMapper userMapper, EntityUpdater<UserEntity, Long> entityUpdater) {
+    public UserService(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
-        this.entityUpdater = entityUpdater;
     }
 
     public Mono<UserResponseDto> createUser(UserRequestDto user) {
@@ -43,9 +39,9 @@ public class UserService {
         return userRepository.existsById(userId)
                 .flatMap(exists -> exists ? Mono.just(exists) : Mono.empty())
                 .switchIfEmpty(Mono.error(new EntityNotFoundException("user entity does not exists")))
-                .flatMap(exists -> entityUpdater.updateNonNull(userId, userMapper.toEntity(user)))
+                .flatMap(exists -> userRepository.updateNonNull(userId, userMapper.toEntity(user)))
                 .doOnError(error -> LOGGER.error("Could not update user with userId=" + userId, error))
-                .flatMap(resultCount -> resultCount > 0 ? Mono.empty() : Mono.error(new EntityNotFoundException("Could not update entity")));
+                .flatMap(count -> count > 0 ? Mono.empty() : Mono.error(new EntityNotFoundException("could not update entity")));
     }
 
     public Flux<UserResponseDto> listAllUsers() {

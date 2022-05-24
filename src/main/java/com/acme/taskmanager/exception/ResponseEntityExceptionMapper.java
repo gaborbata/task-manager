@@ -48,6 +48,6 @@ public class ResponseEntityExceptionMapper {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleWebExchangeBindException(Exception exception) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponseDto(exception.getMessage()));
+                .body(new ErrorResponseDto(exception.getClass().getSimpleName()));
     }
 }

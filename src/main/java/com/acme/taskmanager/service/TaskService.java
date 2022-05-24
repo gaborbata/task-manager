@@ -3,10 +3,8 @@ package com.acme.taskmanager.service;
 import com.acme.taskmanager.dto.TaskRequestDto;
 import com.acme.taskmanager.dto.TaskInfoDto;
 import com.acme.taskmanager.dto.TaskResponseDto;
-import com.acme.taskmanager.entity.TaskEntity;
 import com.acme.taskmanager.exception.EntityNotFoundException;
 import com.acme.taskmanager.mapper.TaskMapper;
-import com.acme.taskmanager.repository.EntityUpdater;
 import com.acme.taskmanager.repository.TaskRepository;
 import com.acme.taskmanager.repository.UserRepository;
 import org.slf4j.Logger;
@@ -26,14 +24,12 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final TaskMapper taskMapper;
-    private final EntityUpdater<TaskEntity, Long> entityUpdater;
 
     @Autowired
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskMapper taskMapper, EntityUpdater<TaskEntity, Long> entityUpdater) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskMapper taskMapper) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.taskMapper = taskMapper;
-        this.entityUpdater = entityUpdater;
     }
 
     public Mono<TaskResponseDto> createTask(Long userId, TaskRequestDto task) {
@@ -49,9 +45,9 @@ public class TaskService {
         return taskRepository.existsByIdAndUserId(userId, taskId)
                 .flatMap(exists -> exists ? Mono.just(exists) : Mono.empty())
                 .switchIfEmpty(Mono.error(new EntityNotFoundException("entity does not exists")))
-                .flatMap(exists -> entityUpdater.updateNonNull(taskId, taskMapper.toEntity(task)))
+                .flatMap(exists -> taskRepository.updateNonNull(taskId, taskMapper.toEntity(task)))
                 .doOnError(error -> LOGGER.error("Could not update task with userId=" + userId + " and taskId=" + taskId, error))
-                .flatMap(resultCount -> resultCount > 0 ? Mono.empty() : Mono.error(new EntityNotFoundException("Could not update entity")));
+                .flatMap(count -> count > 0 ? Mono.empty() : Mono.error(new EntityNotFoundException("could not update entity")));
     }
 
     public Mono<Void> deleteTask(Long userId, Long taskId) {
@@ -71,9 +67,10 @@ public class TaskService {
     }
 
     public Flux<TaskResponseDto> listAllTasksForAUser(Long userId) {
-        return userRepository.findById(userId)
-                .flatMapMany(existingUser -> taskRepository.findAllByUserId(userId))
+        return userRepository.existsById(userId)
+                .flatMap(exists -> exists ? Mono.just(exists) : Mono.empty())
                 .switchIfEmpty(Mono.error(new EntityNotFoundException("user entity does not exists")))
+                .flatMapMany(existingUser -> taskRepository.findAllByUserId(userId))
                 .doOnError(error -> LOGGER.error("Could not get tasks with userId=" + userId, error))
                 .map(taskMapper::toReponseDto);
     }

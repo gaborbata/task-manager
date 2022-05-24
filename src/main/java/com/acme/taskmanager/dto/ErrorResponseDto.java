@@ -10,7 +10,7 @@ public class ErrorResponseDto {
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
     public ErrorResponseDto(@JsonProperty("message") String message) {
-        this.message = Optional.ofNullable(message).orElse("unknown");
+        this.message = Optional.ofNullable(message).orElse("error");
     }
 
     public String getMessage() {
