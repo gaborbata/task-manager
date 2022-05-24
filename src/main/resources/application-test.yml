@@ -2,3 +2,6 @@
 spring:
   flyway:
     enabled: false
+
+expired-task-scheduler:
+  enabled: false
