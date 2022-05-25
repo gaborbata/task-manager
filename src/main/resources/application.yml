@@ -17,3 +17,5 @@ logging:
 expired-task-scheduler:
   delay-in-ms: 30000
   expiration: 30d
+  update-limit: 100
+

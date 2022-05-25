@@ -27,19 +27,22 @@ public class ExpiredTasksSchedulerConfig {
 
     private final TaskRepository taskRepository;
     private final Duration expiration;
+    private final Integer updateLimit;
 
     @Autowired
     public ExpiredTasksSchedulerConfig(TaskRepository taskRepository,
-                                       @Value("${expired-task-scheduler.expiration}") Duration expiration) {
+                                       @Value("${expired-task-scheduler.expiration}") Duration expiration,
+                                       @Value("${expired-task-scheduler.update-limit}") Integer updateLimit) {
         this.taskRepository = taskRepository;
         this.expiration = expiration;
-        LOGGER.info("Expired task scheduler initialized with expiration={}", expiration);
+        this.updateLimit = updateLimit;
+        LOGGER.info("Expired task scheduler initialized with expiration={} and update-limit={}", expiration, updateLimit);
     }
 
     @Scheduled(fixedDelayString = "${expired-task-scheduler.delay-in-ms}", initialDelayString = "${expired-task-scheduler.delay-in-ms}")
     public void scheduleExpiredTaskUpdates() {
         var expirationDateTime = LocalDateTime.now().minusNanos(expiration.toNanos());
-        taskRepository.updatePendingTasksBeforeDateTime(expirationDateTime, TaskStatus.DONE)
+        taskRepository.updatePendingTasksBeforeDateTime(expirationDateTime, TaskStatus.DONE, updateLimit)
                 .subscribe(
                         count -> LOGGER.info("Updated {} expired task(s)", count),
                         error -> LOGGER.error("Could not update expired tasks", error)

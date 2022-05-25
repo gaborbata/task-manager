@@ -51,10 +51,10 @@ public class TaskRepository extends CriteriaBasedRepository<TaskEntity, Long> {
                 .and(USER_ID).is(userId)), getEntityClass());
     }
 
-    public Mono<Integer> updatePendingTasksBeforeDateTime(LocalDateTime expirationDateTime, TaskStatus status) {
+    public Mono<Integer> updatePendingTasksBeforeDateTime(LocalDateTime expirationDateTime, TaskStatus status, Integer limit) {
         return r2dbcEntityTemplate.select(query(where(STATUS).is(TaskStatus.PENDING)
                         .and(DATE_TIME).lessThanOrEquals(expirationDateTime))
-                        .limit(100), getEntityClass())
+                        .limit(limit), getEntityClass())
                 .doOnNext(task -> LOGGER.info("Expired pending task id={} and name={}", task.getId(), task.getName()))
                 .map(TaskEntity::getId)
                 .collectList()
