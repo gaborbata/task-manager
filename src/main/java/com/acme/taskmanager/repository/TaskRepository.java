@@ -2,6 +2,8 @@ package com.acme.taskmanager.repository;
 
 import com.acme.taskmanager.entity.TaskEntity;
 import com.acme.taskmanager.type.TaskStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Repository;
@@ -19,6 +21,8 @@ import static org.springframework.data.relational.core.query.Update.update;
  */
 @Repository
 public class TaskRepository extends CriteriaBasedRepository<TaskEntity, Long> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskRepository.class);
+
     private static final String USER_ID = "user_id";
     private static final String STATUS = "status";
     private static final String DATE_TIME = "date_time";
@@ -48,9 +52,15 @@ public class TaskRepository extends CriteriaBasedRepository<TaskEntity, Long> {
     }
 
     public Mono<Integer> updatePendingTasksBeforeDateTime(LocalDateTime expirationDateTime, TaskStatus status) {
-        return r2dbcEntityTemplate.update(getEntityClass())
-                .matching(query(where(STATUS).is(TaskStatus.PENDING)
-                        .and(DATE_TIME).lessThanOrEquals(expirationDateTime)))
-                .apply(update(STATUS, status));
+        return r2dbcEntityTemplate.select(query(where(STATUS).is(TaskStatus.PENDING)
+                        .and(DATE_TIME)
+                        .lessThanOrEquals(expirationDateTime)), getEntityClass())
+                .doOnNext(task -> LOGGER.info("Expired pending task id={} and name={}", task.getId(), task.getName()))
+                .map(TaskEntity::getId)
+                .collectList()
+                .flatMap(ids -> r2dbcEntityTemplate.update(getEntityClass())
+                        .matching(query(where(identifier).in(ids)))
+                        .apply(update(STATUS, status))
+                );
     }
 }
